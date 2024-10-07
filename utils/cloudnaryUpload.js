@@ -12,11 +12,7 @@ async function uploadImage(url) {
 
     // Upload an image
     const uploadResult = await cloudinary.uploader
-        .upload(
-            url, {
-            public_id: 'telebuzzed',
-        }
-        )
+        .upload(url)
         .catch((error) => {
             console.log(error);
         });

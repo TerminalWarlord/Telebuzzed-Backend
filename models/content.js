@@ -11,10 +11,15 @@ const contentSchema = new Schema({
     members: { type: Number, default: 0 },
     subscribers: { type: Number, default: 0 },
     language: { type: String, default: 'english' },
-    descrition: { type: String, required: true },
+    description: { type: String, required: true },
     category: { type: String, required: true },
-    views: { type: String, default: 1 },
+    views: { type: Number, default: 1 },
     added_on: { type: Date, default: Date.now() },
+    added_by: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     avatar: { type: String },
     likes: { type: Number, default: 0 },
     is_nsfw: { type: Boolean, default: false },

@@ -8,11 +8,13 @@ const postRequest = async (req, res, next) => {
     content.category = body.category;
     content.language = body.language;
     content.is_nsfw = body.is_nsfw ? true : false;
+    content.added_by = req.user._id;
 
     try {
         await Request.create(content);
     }
     catch (error) {
+        console.log(error);
         return res.status(400).json({
             result: {
                 message: "Failed to add!"

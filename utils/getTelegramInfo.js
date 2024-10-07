@@ -1,4 +1,5 @@
 const cheerio = require('cheerio');
+const uploadImage = require('./cloudnaryUpload');
 
 
 async function getTelegramDetails(url) {
@@ -37,7 +38,7 @@ async function getTelegramDetails(url) {
             description,
             members,
             subscribers,
-            avatar,
+            avatar: await uploadImage(avatar),
         };
 
         return content;
