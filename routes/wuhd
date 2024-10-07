@@ -1,0 +1,17 @@
+{
+    "status": 200,
+    "result": {
+        "isUser": false,
+        "username": "jaybeespotifybot",
+        "title": "JayBee Spotify Bot",
+        "description": "Skeddy is a simple yet powerful reminder tool that can help you create and manage your reminders.",
+        "reviews": "4/5",
+        "languages": "English",
+        "category": "Utilities",
+        "added": "4 years 5 months ago",
+        "popularity": "80%",
+        "image": "https://telegramic.org/media/avatars/bots/179662323.jpg",
+        "likes": 80,
+        "dislikes": 5
+    }
+}
