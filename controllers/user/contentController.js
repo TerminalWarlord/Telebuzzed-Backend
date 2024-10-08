@@ -1,4 +1,5 @@
 const Request = require('../../models/request');
+const Content = require('../../models/content');
 
 const getTelegramDetails = require('../../utils/getTelegramInfo');
 
@@ -28,8 +29,62 @@ const postRequest = async (req, res, next) => {
         }
     })
 }
+// filter
+// limit
+// offset
+// searchTerm
+// type
+const getList = async (req, res, next) => {
+    const query = req.query;
+    const filter = query.filter || 'popular';
+    const searchTerm = query.searchTerm || '';
+    const searchQuery = searchTerm
+        ? {
+            $or: [
+                { name: { $regex: searchTerm, $options: 'i' } }, // Case-insensitive match
+                { description: { $regex: searchTerm, $options: 'i' } }
+            ]
+        }
+        : {};
+
+    const limit = parseInt(query.limit) || 20;
+    const offset = parseInt(query.offset) || 1;
+    const skip = (offset - 1) * limit
+    const content = await Content.find({
+        type: query.type || 'bot',
+        ...searchQuery,
+    })
+        .limit(limit + 1)
+        .skip(skip)
+        .select('name description username avatar category')
+        .exec();
+
+    res.json({
+        result: content
+    })
+}
+
+const getContent = async (req, res, next) => {
+    const username = req.params.username;
+    const content = await Content.findOne({
+        username: { $regex: username, $options: 'i' }
+    }).populate({
+        path: 'added_by',
+        select: 'first_name last_name username'
+    })
+
+    res.json({
+        result: content
+    })
+}
+
+
+
+
 
 
 module.exports = {
-    postRequest
+    postRequest,
+    getList,
+    getContent
 }

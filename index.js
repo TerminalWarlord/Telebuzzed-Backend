@@ -21,7 +21,7 @@ const contentRoutes = require('./routes/user/content');
 const adminRoutes = require('./routes/admin/manage');
 
 app.use('/auth', authRoutes);
-app.use('/user', contentRoutes);
+app.use(contentRoutes);
 app.use('/admin', adminRoutes);
 
 

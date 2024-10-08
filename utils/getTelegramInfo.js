@@ -1,7 +1,6 @@
 const cheerio = require('cheerio');
 const uploadImage = require('./cloudnaryUpload');
 
-
 async function getTelegramDetails(url) {
     try {
         const response = await fetch(url);
@@ -9,7 +8,13 @@ async function getTelegramDetails(url) {
         const $ = cheerio.load(html);
 
         let contentType = 'bot';
-        const avatar = $('.tgme_page_photo_image').attr('src');
+        let avatar = $('.tgme_page_photo_image').attr('src');
+
+        // Handle avatar URL
+        if (avatar && !avatar.startsWith('https://')) {
+            avatar = avatar.startsWith('//') ? `https:${avatar}` : `https://${avatar}`;
+        }
+
         const title = $('.tgme_page_title').text().trim();
         let username = $('.tgme_page_extra').text().trim().replace("@", "");
         let members = null;
@@ -28,9 +33,9 @@ async function getTelegramDetails(url) {
 
         const descriptionHtml = $('.tgme_page_description').html();
         const description = descriptionHtml
-            ? descriptionHtml.replace(/<br\s*\/?>/gi, '\n').replace(/(<([^>]+)>)/gi, "")
+            ? descriptionHtml.replace(/<br\s*\/?>/gi, '\n').replace(/(<([^>]+)>)/gi, "").trim()
             : '';
-
+        console.log(avatar)
         const content = {
             name: title,
             type: contentType,
@@ -44,9 +49,12 @@ async function getTelegramDetails(url) {
         return content;
     } catch (error) {
         console.error(`Error fetching details for ${url}:`, error.message);
-        throw new Error(`Error fetching details for ${url}:`, error.message);
+        throw new Error(`Error fetching details for ${url}: ${error.message}`);
     }
 }
 
-
 module.exports = getTelegramDetails;
+
+// getTelegramDetails('https://t.me/transparency')
+//     .then(content => console.log(content))
+//     .catch(error => console.error(error));

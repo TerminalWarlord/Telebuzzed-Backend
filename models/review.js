@@ -3,23 +3,25 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-
-const requestSchema = new Schema({
-    name: { type: String, required: true },
-    username: { type: String, required: true, unique: true },
-    type: { type: String, default: 'bot' },
-    members: { type: Number, default: 0 },
-    subscribers: { type: Number, default: 0 },
-    language: { type: String, default: 'english' },
-    descrition: { type: String, required: true },
-    category: { type: String, required: true },
-    views: { type: String, default: 1 },
-    added_on: { type: Date, default: Date.now() },
-    avatar: { type: String },
-    likes: { type: Number, default: 0 },
-    is_nsfw: { type: Boolean, default: false },
-    dislikes: { type: Number, default: 0 },
+const reviewSchema = new Schema({
+    content_id: { type: Schema.Types.ObjectId, ref: 'Content', required: true },
+    user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    stars: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 5,
+        validate: {
+            validator: function (v) {
+                return v % 1 !== 0 || v >= 0 && v <= 5;
+            },
+            message: props => `${props.value} is not a valid star rating!`
+        }
+    },
+    review: { type: String, required: true }
 })
 
+// Add a unique index to enforce one review per content per user
+reviewSchema.index({ content_id: 1, user_id: 1 }, { unique: true });
 
-module.exports = mongoose.model('Request', requestSchema);
+module.exports = mongoose.model('Review', reviewSchema);

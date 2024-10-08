@@ -2,6 +2,9 @@ const { v2: cloudinary } = require('cloudinary');
 require('dotenv').config();
 
 async function uploadImage(url) {
+    if (!url) {
+        return 'https://res.cloudinary.com/djsn4u5ea/image/upload/v1728366113/telebuzzed_default.png';
+    }
 
     // Configuration
     cloudinary.config({

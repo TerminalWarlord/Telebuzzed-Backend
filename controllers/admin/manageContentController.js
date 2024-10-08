@@ -2,13 +2,15 @@ const Request = require('../../models/request');
 const Content = require('../../models/content');
 
 const getUserRequests = async (req, res, next) => {
+
+
     const requests = await Request.find()
         .populate({
             path: 'added_by',
             select: 'first_name last_name username'
         });
     res.json({
-        result: requests
+        result: requests || []
     })
 }
 
