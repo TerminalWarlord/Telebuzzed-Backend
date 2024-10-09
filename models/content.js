@@ -12,7 +12,7 @@ const contentSchema = new Schema({
     subscribers: { type: Number, default: 0 },
     language: { type: String, default: 'english' },
     description: { type: String, required: true },
-    category: { type: String, required: true },
+    category_id: { type: Schema.Types.ObjectId, required: true, ref: 'Category' },
     views: { type: Number, default: 1 },
     added_on: { type: Date, default: Date.now() },
     added_by: {

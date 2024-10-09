@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const User = require('../../models/user')
+const User = require('../../models/user');
+const Content = require('../../models/content');
+const Review = require('../../models/review');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -75,15 +77,7 @@ const postSignUp = async (req, res, next) => {
 }
 
 
-// TODO: Implement reviews and contributions
-// {
-//     "registered_on": "01/01/2010",
-//     "reviews": 10,
-//     "bots_added": 10,
-//     "channels_added": 2,
-//     "groups_added": 13,
-//     "image": "https://telegramic.org/media/avatars/bots/179662323.jpg"
-//   }
+// TODO: optimize getUser
 
 
 const getUser = async (req, res, next) => {
@@ -92,6 +86,18 @@ const getUser = async (req, res, next) => {
         const jwtPayload = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(jwtPayload.userId);
         console.log(user);
+        const allContent = await Content.find({
+            added_by: user._id,
+        })
+        let channelsAdded = 0, groupsAdded = 0, botsAdded = 0
+        allContent.map(item => {
+            if (item.type === 'bot') botsAdded += 1;
+            else if (item.type === 'channel') channelsAdded += 1;
+            else groupsAdded += 1;
+        })
+        const totalReviews = await Review.countDocuments({
+            user_id: user._id
+        })
         res.json({
             result: {
                 id: user._id,
@@ -102,15 +108,16 @@ const getUser = async (req, res, next) => {
                 registered_on: user.registered_on,
                 gender: user.gender,
                 username: user.username,
-                reviews: 10,
-                bots_added: 10,
-                channels_added: 2,
-                groups_added: 13,
+                reviews: totalReviews,
+                bots_added: botsAdded,
+                channels_added: channelsAdded,
+                groups_added: groupsAdded,
                 avatar: user.avatar
             }
         })
     }
     catch (err) {
+        console.log(err)
         return res.status(401).json({
             result: {
                 message: "Invalid token!"

@@ -11,8 +11,8 @@ const requestSchema = new Schema({
     members: { type: Number, default: 0 },
     subscribers: { type: Number, default: 0 },
     language: { type: String, default: 'english' },
-    description: { type: String, required: true },
-    category: { type: String, required: true },
+    description: { type: String },
+    category_id: { type: Schema.Types.ObjectId, required: true, ref: 'Category' },
     views: { type: Number, default: 1 },
     added_on: { type: Date, default: Date.now() },
     added_by: {
@@ -24,6 +24,8 @@ const requestSchema = new Schema({
     likes: { type: Number, default: 0 },
     is_nsfw: { type: Boolean, default: false },
     dislikes: { type: Number, default: 0 },
+    status: { type: String, default: 'pending' },
+    reason: { type: String }
 })
 
 
