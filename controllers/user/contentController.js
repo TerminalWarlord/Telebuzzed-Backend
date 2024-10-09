@@ -122,20 +122,102 @@ const getList = async (req, res, next) => {
 
 
 const getContent = async (req, res, next) => {
-    const username = req.params.username;
-    const content = await Content.findOne({
-        username: { $regex: username, $options: 'i' }
-    }).populate({
-        path: 'added_by',
-        select: 'first_name last_name username'
-    })
-    content.views += 1;
-    content.save();
+    try {
+        const username = req.params.username;
 
-    res.json({
-        result: content
-    })
-}
+        const [content] = await Content.aggregate([
+            // Match the content by username
+            {
+                $match: {
+                    username: { $regex: username, $options: 'i' }
+                }
+            },
+            // Lookup reviews for this content
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'content_id',
+                    as: 'reviews'
+                }
+            },
+            // Add fields for total reviews and average rating
+            {
+                $addFields: {
+                    totalReviews: { $size: '$reviews' },
+                    averageRating: { $avg: '$reviews.stars' }
+                }
+            },
+            // Lookup category information
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category_id',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            // Unwind the category array
+            {
+                $unwind: '$category'
+            },
+            // Lookup user information for added_by
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'added_by',
+                    foreignField: '_id',
+                    as: 'added_by'
+                }
+            },
+            // Unwind the added_by array
+            {
+                $unwind: '$added_by'
+            },
+            // Project only the fields we need
+            {
+                $project: {
+                    name: 1,
+                    username: 1,
+                    type: 1,
+                    members: 1,
+                    subscribers: 1,
+                    language: 1,
+                    description: 1,
+                    views: 1,
+                    added_on: 1,
+                    avatar: 1,
+                    likes: 1,
+                    is_nsfw: 1,
+                    dislikes: 1,
+                    totalReviews: 1,
+                    averageRating: 1,
+                    'category.name': 1,
+                    'category.slug': 1,
+                    'added_by.first_name': 1,
+                    'added_by.last_name': 1,
+                    'added_by.username': 1
+                }
+            }
+        ]);
+
+        if (!content) {
+            return res.status(404).json({ error: 'Content not found' });
+        }
+
+        // Increment views
+        await Content.updateOne({ _id: content._id }, { $inc: { views: 1 } });
+
+        // Add the incremented view to the response
+        content.views += 1;
+
+        res.json({
+            result: content
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 const getPendingRequests = async (req, res, next) => {
