@@ -6,6 +6,7 @@ const router = express.Router();
 
 const multer = require('multer');
 const { getCategories } = require('../../controllers/user/categoryController');
+const { getImage } = require('../../controllers/user/imageController');
 const upload = multer();
 
 router.post('/user/request', authWall, upload.none(), postRequest);
@@ -19,6 +20,10 @@ router.get('/pending-requests', authWall, getPendingRequests);
 
 router.get('/list', getList);
 router.get('/details/:username', getContent);
+
+
+
+router.get('/image/:imagePath', getImage);
 
 
 

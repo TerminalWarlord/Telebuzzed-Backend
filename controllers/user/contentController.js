@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 const Request = require('../../models/request');
+const Category = require('../../models/category');
 const Content = require('../../models/content');
 const Review = require('../../models/review');
 
@@ -45,7 +46,10 @@ const postRequest = async (req, res, next) => {
 const getList = async (req, res, next) => {
     const query = req.query;
     const filter = query.filter || 'default';
-    const category_id = query.category_id;
+    const category_slug = query.category_slug;
+    const category = await Category.findOne({
+        slug: category_slug
+    })
     const searchTerm = query.searchTerm || '';
     const searchQuery = searchTerm
         ? {
@@ -72,12 +76,12 @@ const getList = async (req, res, next) => {
         match.type = query.type;
     }
     // Add category_id to the match if it's provided and not equal to 1
-    if (category_id && category_id !== '1') {
+    if (category) {
         try {
-            match.category_id = new mongoose.Types.ObjectId(category_id);
+            match.category_id = category._id;
         } catch (error) {
             // If category_id is not a valid ObjectId, we'll ignore it
-            console.error('Invalid category_id:', category_id);
+            console.error('Invalid category_id:', category.slug);
         }
     }
 

@@ -1,5 +1,8 @@
 const cheerio = require('cheerio');
 const uploadImage = require('./cloudnaryUpload');
+const crypto = require('crypto');
+
+const Image = require('../models/image');
 
 async function getTelegramDetails(url) {
     try {
@@ -8,13 +11,12 @@ async function getTelegramDetails(url) {
         const $ = cheerio.load(html);
 
         let contentType = 'bot';
-        let avatar = $('.tgme_page_photo_image').attr('src');
+        let avatar = $('.tgme_page_photo_image').attr('src') || 'https://res.cloudinary.com/djsn4u5ea/image/upload/v1728366113/telebuzzed_default.png';
 
         // Handle avatar URL
         if (avatar && !avatar.startsWith('https://')) {
             avatar = avatar.startsWith('//') ? `https:${avatar}` : `https://${avatar}`;
         }
-
         const title = $('.tgme_page_title').text().trim();
         let username = $('.tgme_page_extra').text().trim().replace("@", "");
         let members = null;
@@ -35,7 +37,13 @@ async function getTelegramDetails(url) {
         const description = descriptionHtml
             ? descriptionHtml.replace(/<br\s*\/?>/gi, '\n').replace(/(<([^>]+)>)/gi, "").trim()
             : '';
-        console.log(avatar)
+        const cloudinaryUrl = await uploadImage(avatar);
+        const randomStr = crypto.randomBytes(4).toString('hex')
+        const cdnUrl = username + "_" + randomStr + '.' + cloudinaryUrl.split('.').pop()
+        await Image.create({
+            path: cdnUrl,
+            content: cloudinaryUrl
+        });
         const content = {
             name: title,
             type: contentType,
@@ -43,7 +51,7 @@ async function getTelegramDetails(url) {
             description,
             members,
             subscribers,
-            avatar: await uploadImage(avatar),
+            avatar: cdnUrl,
         };
 
         return content;
