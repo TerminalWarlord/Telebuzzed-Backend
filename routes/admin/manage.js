@@ -6,12 +6,14 @@ const { getUserRequests, postAdminApproval } = require('../../controllers/admin/
 const router = express.Router();
 
 const multer = require('multer');
+const { adminPostSubmission } = require('../../controllers/admin/postController');
 const upload = multer();
 
 // TODO: add back authwall
 
 router.get('/requests', authWall, upload.none(), getUserRequests);
 router.post('/requests', authWall, upload.none(), postAdminApproval);
+router.post('/post', authWall, upload.none(), adminPostSubmission);
 // router.post('/signup', postSignUp);
 
 

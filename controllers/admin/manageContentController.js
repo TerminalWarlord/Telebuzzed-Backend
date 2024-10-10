@@ -29,7 +29,7 @@ const postAdminApproval = async (req, res, next) => {
             }
         })
     }
-
+    console.log(action)
     const request = await Request.findById(requestId);
     if (action === 'approve') {
         request.status = 'published';
