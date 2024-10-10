@@ -1,6 +1,9 @@
+const mongoose = require('mongoose')
+
 const Request = require('../../models/request');
 const Content = require('../../models/content');
 const Review = require('../../models/review');
+
 
 const getTelegramDetails = require('../../utils/getTelegramInfo');
 
@@ -42,6 +45,7 @@ const postRequest = async (req, res, next) => {
 const getList = async (req, res, next) => {
     const query = req.query;
     const filter = query.filter || 'default';
+    const category_id = query.category_id;
     const searchTerm = query.searchTerm || '';
     const searchQuery = searchTerm
         ? {
@@ -61,13 +65,22 @@ const getList = async (req, res, next) => {
     const offset = parseInt(query.offset) || 1;
     const skip = (offset - 1) * limit;
 
-
     const match = {
         ...searchQuery,
-    }
+    };
     if (query.type !== 'all') {
-        match.type = query.type
+        match.type = query.type;
     }
+    // Add category_id to the match if it's provided and not equal to 1
+    if (category_id && category_id !== '1') {
+        try {
+            match.category_id = new mongoose.Types.ObjectId(category_id);
+        } catch (error) {
+            // If category_id is not a valid ObjectId, we'll ignore it
+            console.error('Invalid category_id:', category_id);
+        }
+    }
+
     const aggregationPipeline = [
         {
             $match: match
@@ -81,6 +94,14 @@ const getList = async (req, res, next) => {
             }
         },
         {
+            $lookup: {
+                from: 'categories',
+                localField: 'category_id',
+                foreignField: '_id',
+                as: 'category'
+            }
+        },
+        {
             $addFields: {
                 totalReviews: { $size: '$reviews' },
                 averageRating: {
@@ -89,7 +110,8 @@ const getList = async (req, res, next) => {
                         then: 1,
                         else: { $avg: '$reviews.stars' }
                     }
-                }
+                },
+                category: { $arrayElemAt: ["$category", 0] }
             }
         },
         {
@@ -109,15 +131,20 @@ const getList = async (req, res, next) => {
         { $limit: limit + 1 }
     ];
 
-    const content = await Content.aggregate(aggregationPipeline);
+    try {
+        const content = await Content.aggregate(aggregationPipeline);
 
-    const hasNextPage = content.length > limit;
-    const results = content.slice(0, limit);
-    console.log(results)
-    res.json({
-        hasNextPage,
-        result: results
-    });
+        const hasNextPage = content.length > limit;
+        const results = content.slice(0, limit);
+        console.log(results);
+        res.json({
+            hasNextPage,
+            result: results
+        });
+    } catch (error) {
+        console.error('Error in getList:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the list' });
+    }
 };
 
 
