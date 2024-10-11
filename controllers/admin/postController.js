@@ -20,6 +20,30 @@ const generateSlug = async (title, sequence = null) => {
 }
 
 
+const createImage = async (baseSlug, file) => {
+    // Get the file path
+    const filePath = file.path;
+    const cdnPath = await uploadImage(filePath);
+    let imageOnDb = baseSlug + '.' + filePath.split('.').pop()
+    console.log(filePath, cdnPath, imageOnDb);
+    try {
+        await Image.create({
+            path: imageOnDb,
+            content: cdnPath
+        })
+        console.log("Uploaded")
+    }
+    catch (err) {
+        console.log(err);
+        imageOnDb = baseSlug + '.' + Date.now() + '.' + filePath.split('.').pop();
+        await Image.create({
+            path: imageOnDb,
+            content: cdnPath
+        })
+    }
+    return imageOnDb;
+}
+
 const adminPostSubmission = async (req, res, next) => {
     const { title, content, isPost } = req.body;
     // Access file information from req.file
@@ -33,31 +57,15 @@ const adminPostSubmission = async (req, res, next) => {
     console.log('Uploaded file:', file);
 
 
-    let baseSlug = await generateSlug(title);
+    let baseSlug = await generateSlug(title.trim());
 
-    // Get the file path
-    const filePath = file.path;
-    const cdnPath = await uploadImage(filePath);
-    console.log(filePath, cdnPath);
-    let imageOnDb = baseSlug + '.' + filePath.split('.').pop()
-    try {
-        await Image({
-            path: baseSlug + '.' + filePath.split('.').pop(),
-            content: cdnPath
-        })
-    }
-    catch (err) {
-        imageOnDb = baseSlug + '.' + Date.now() + '.' + filePath.split('.').pop();
-        await Image({
-            path: baseSlug + '.' + Date.now() + '.' + filePath.split('.').pop(),
-            content: cdnPath
-        })
-    }
+
+    const imageOnDb = await createImage(baseSlug, file);
     console.log({
         title,
         content,
         is_post: isPost,
-        featuredImage: imageOnDb
+        featured_image: imageOnDb
     })
 
     try {
@@ -108,11 +116,84 @@ const getAllPosts = async (req, res, next) => {
         hasNextPage: allPosts.length > limit,
         result: results || []
     })
+}
 
 
+
+const getPostDetails = async (req, res, next) => {
+    const postSlug = req.query.postSlug;
+    try {
+        const post = await Post.findOne({
+            slug: postSlug
+        }).populate('author_id');
+        if (!post) {
+            return res.status(404).json({
+                result: {
+                    message: "Not found!"
+                }
+            })
+        }
+        return res.json({
+            result: post
+        })
+    }
+    catch (err) {
+        return res.status(404).json({
+            result: {
+                message: "Not found!"
+            }
+        })
+    }
 
 }
+const putEditPost = async (req, res, next) => {
+    const postSlug = req.params.postSlug;
+    const file = req.file;
+    let imageOnDb = null;
+    if (file) {
+        console.log(file)
+        imageOnDb = await createImage(postSlug, file);
+    }
+    // let imagePath
+    const body = req.body;
+    console.log(postSlug, body);
+    const post = await Post.findOne({
+        slug: postSlug
+    })
+    if (!post) {
+        return res.status(404).json({
+            result: {
+                message: "Post not found!"
+            }
+        })
+    }
+
+    post.title = body.title;
+    post.is_post = body.isPost;
+    post.content = body.content;
+    if (imageOnDb) post.featured_image = imageOnDb;
+    try {
+        await post.save();
+        return res.json({
+            result: {
+                message: "Post has been updated!"
+            }
+        })
+    }
+    catch (err) {
+        return res.status(403).json({
+            result: {
+                message: "Post not found!"
+            }
+        })
+    }
+}
+
+
+
 module.exports = {
     adminPostSubmission,
-    getAllPosts
+    getAllPosts,
+    getPostDetails,
+    putEditPost
 }

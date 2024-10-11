@@ -1,7 +1,8 @@
+
+const { adminPostSubmission, getAllPosts, getPostDetails, putEditPost } = require('../../controllers/admin/postController');
 const express = require('express');
 const { authWall } = require('../../controllers/user/authController');
 
-const { getUserRequests, postAdminApproval } = require('../../controllers/admin/manageContentController');
 
 const router = express.Router();
 
@@ -16,13 +17,11 @@ const upload = multer({
         }
     })
 });
-// TODO: add back authwall
 
-router.get('/requests', authWall, upload.none(), getUserRequests);
-router.post('/requests', authWall, upload.none(), postAdminApproval);
-
-
-
+router.put('/post/edit/:postSlug', authWall, upload.single('file'), putEditPost);
+router.post('/post', authWall, upload.single('file'), adminPostSubmission);
+router.get('/post', getPostDetails);
+router.get('/all_posts', authWall, upload.none(), getAllPosts);
 
 
 

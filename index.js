@@ -19,10 +19,12 @@ app.use(cors());
 const authRoutes = require('./routes/user/auth');
 const contentRoutes = require('./routes/user/content');
 const adminRoutes = require('./routes/admin/manage');
+const adminPostRoutes = require('./routes/admin/post');
 
 app.use('/auth', authRoutes);
 app.use(contentRoutes);
 app.use('/admin', adminRoutes);
+app.use(adminPostRoutes);
 
 
 
