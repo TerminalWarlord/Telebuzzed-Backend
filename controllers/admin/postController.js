@@ -56,7 +56,7 @@ const adminPostSubmission = async (req, res, next) => {
     console.log({
         title,
         content,
-        isPost: isPost,
+        is_post: isPost,
         featuredImage: imageOnDb
     })
 
@@ -66,8 +66,8 @@ const adminPostSubmission = async (req, res, next) => {
             content,
             slug: baseSlug,
             author_id: req.user._id,
-            isPost: isPost,
-            featuredImage: imageOnDb
+            is_post: isPost,
+            featured_image: imageOnDb
         });
         return res.json({
             result: {
@@ -99,7 +99,7 @@ const getAllPosts = async (req, res, next) => {
         .populate({
             path: 'author_id', select: 'first_name last_name username avatar'
         })
-        .select('title slug content isPost featured_image posted_on')
+        .select('title slug content is_post featured_image posted_on')
         .limit(limit + 1)
         .skip(skip)
 
