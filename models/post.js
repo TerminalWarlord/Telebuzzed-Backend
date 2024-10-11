@@ -9,7 +9,9 @@ const postSchema = new Schema({
     slug: { type: String, required: true, unique: true },
     content: { type: String, required: true },
     isPost: { type: Boolean, default: true },
-    featuredImage: { type: String, default: 'default_thumb.png' },
+    author_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    featured_image: { type: String, default: 'default_thumb.png' },
+    posted_on: { type: Date, default: Date.now() },
 });
 
 module.exports = mongoose.model('Post', postSchema);

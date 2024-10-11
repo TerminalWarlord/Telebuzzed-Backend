@@ -36,3 +36,6 @@ coverage/
 *.njsproj
 *.sln
 .DS_Store
+
+
+uploads/
