@@ -7,13 +7,18 @@ const Review = require('../../models/review');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const postSignIn = async (req, res, next) => {
-    const username = req.body.username;
+    const email = req.body.email;
     const password = req.body.password;
-    console.log(username, password)
-    const user = await User.findOne({
-        username
+    console.log(req.body);
+    let user = await User.findOne({
+        email
     })
-    console.log(username, password, user)
+    if (!user) {
+        user = await User.findOne({
+            username: email
+        })
+    }
+    console.log(email, password, user)
     if (!user) {
         return res.status(401).json({
             result: {
@@ -32,7 +37,7 @@ const postSignIn = async (req, res, next) => {
     }
     const token = jwt.sign({
         userId: user._id,
-    }, JWT_SECRET);
+    }, JWT_SECRET, { expiresIn: '5m' });
     res.json({
         result: {
             message: "Successfully logged in!",
@@ -50,28 +55,46 @@ const postSignUp = async (req, res, next) => {
         last_name: body.last_name,
         email: body.email,
         gender: body.gender,
-        username: body.username,
     }
     const hashedPassword = await bcrypt.hash(body.password, 5);
     try {
-        await User.create({
+        const user = new User({
             ...data,
             password: hashedPassword,
         })
+        await user.generateUsername();
+        await user.save();
         res.json({
             status: 200,
             result: {
-                message: "Successful!"
+                message: "You have successfully created an account."
             }
         })
     }
     catch (err) {
-        res.status(401).json({
-            status: 401,
+        console.log(err); // Log error for debugging
+
+        // Identify the type of error (e.g., duplicate email, validation error)
+        let errorMessage = "An error occurred during signup.";
+
+        if (err.code === 11000) {
+            // MongoDB duplicate key error (e.g., email or username already exists)
+            errorMessage = "Email or username already exists.";
+        } else if (err.name === "ValidationError") {
+            // Validation errors
+            errorMessage = "Invalid data. Please check your input.";
+        } else if (err.message) {
+            // General error message
+            errorMessage = err.message;
+        }
+
+        // Send failure response with error message
+        res.status(400).json({
+            status: 400,
             result: {
-                message: "Failed"
+                message: errorMessage,
             }
-        })
+        });
     }
 
 }
@@ -144,10 +167,62 @@ const authWall = async (req, res, next) => {
     next();
 }
 
+
+
+const getFullUserDetails = async (req, res, next) => {
+    try {
+        const username = req.query.username;
+        const user = await User.findOne({
+            username
+        });
+        console.log(user);
+        const allContent = await Content.find({
+            added_by: user._id,
+        })
+        let channelsAdded = 0, groupsAdded = 0, botsAdded = 0
+        allContent.map(item => {
+            if (item.type === 'bot') botsAdded += 1;
+            else if (item.type === 'channel') channelsAdded += 1;
+            else groupsAdded += 1;
+        })
+        const totalReviews = await Review.countDocuments({
+            user_id: user._id
+        })
+        res.json({
+            result: {
+                id: user._id,
+                role: user.role,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                registered_on: user.registered_on,
+                gender: user.gender,
+                username: user.username,
+                reviews: totalReviews,
+                bots_added: botsAdded,
+                channels_added: channelsAdded,
+                groups_added: groupsAdded,
+                avatar: user.avatar
+            }
+        })
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(401).json({
+            result: {
+                message: "Invalid user!"
+            }
+        })
+    }
+}
+
+
+
 module.exports = {
     postSignIn,
     postSignUp,
     getUser,
+    getFullUserDetails,
     authWall
 
 }

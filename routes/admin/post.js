@@ -22,7 +22,7 @@ router.put('/post/edit/:postSlug', authWall, upload.single('file'), putEditPost)
 router.post('/post', authWall, upload.single('file'), adminPostSubmission);
 router.delete('/post/delete/:postSlug', authWall, deletePost);
 router.get('/post', getPostDetails);
-router.get('/all_posts', authWall, upload.none(), getAllPosts);
+router.get('/all_posts', getAllPosts);
 
 
 

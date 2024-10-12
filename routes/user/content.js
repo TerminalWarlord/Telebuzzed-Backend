@@ -1,5 +1,5 @@
 const express = require('express');
-const { authWall } = require('../../controllers/user/authController');
+const { authWall, getFullUserDetails } = require('../../controllers/user/authController');
 const { postRequest, getList, getContent, getPendingRequests } = require('../../controllers/user/contentController');
 const { postUserReview, getReviews } = require('../../controllers/user/reviewController')
 const router = express.Router();
@@ -16,7 +16,7 @@ router.get('/reviews', getReviews);
 router.get('/categories', getCategories);
 
 
-router.get('/pending-requests', authWall, getPendingRequests);
+router.get('/pending-requests', getPendingRequests);
 
 router.get('/list', getList);
 router.get('/details/:username', getContent);
@@ -24,6 +24,7 @@ router.get('/details/:username', getContent);
 
 
 router.get('/image/:imagePath', getImage);
+router.get('/user/get-details', getFullUserDetails);
 
 
 

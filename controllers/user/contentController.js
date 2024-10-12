@@ -4,6 +4,7 @@ const Request = require('../../models/request');
 const Category = require('../../models/category');
 const Content = require('../../models/content');
 const Review = require('../../models/review');
+const User = require('../../models/user');
 
 
 const getTelegramDetails = require('../../utils/getTelegramInfo');
@@ -45,11 +46,21 @@ const postRequest = async (req, res, next) => {
 // type
 const getList = async (req, res, next) => {
     const query = req.query;
+    const username = query.username;
     const filter = query.filter || 'default';
     const category_slug = query.category_slug;
+
+    let user;
+    if (username) {
+        user = await User.findOne({
+            username
+        });
+    }
+
     const category = await Category.findOne({
         slug: category_slug
-    })
+    });
+
     const searchTerm = query.searchTerm || '';
     const searchQuery = searchTerm
         ? {
@@ -59,12 +70,14 @@ const getList = async (req, res, next) => {
             ]
         }
         : {};
+
     let sortOption = {
         added_on: -1
     };
     if (filter === 'popular') {
         sortOption = { views: -1 };
     }
+
     const limit = parseInt(query.limit) || 20;
     const offset = parseInt(query.offset) || 1;
     const skip = (offset - 1) * limit;
@@ -72,9 +85,16 @@ const getList = async (req, res, next) => {
     const match = {
         ...searchQuery,
     };
+
+    // Include added_by if user is found
+    if (user) {
+        match.added_by = user._id;
+    }
+
     if (query.type !== 'all') {
         match.type = query.type;
     }
+
     // Add category_id to the match if it's provided and not equal to 1
     if (category) {
         try {
@@ -140,7 +160,6 @@ const getList = async (req, res, next) => {
 
         const hasNextPage = content.length > limit;
         const results = content.slice(0, limit);
-        console.log(results);
         res.json({
             hasNextPage,
             result: results
@@ -252,8 +271,12 @@ const getContent = async (req, res, next) => {
 
 
 const getPendingRequests = async (req, res, next) => {
+    const username = req.query.username;
+    const user = await User.findOne({
+        username
+    })
     const request = await Request.find({
-        added_by: req.user._id,
+        added_by: user._id,
     })
     res.json({
         result: request || []

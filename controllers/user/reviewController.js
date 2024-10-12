@@ -51,7 +51,7 @@ const getReviews = async (req, res, next) => {
 
     if (reviewer) {
         const allReviews = await Review.find()
-            .populate({ path: 'content_id', select: 'name avatar username' })
+            .populate({ path: 'content_id', select: 'name avatar username type' })
             .populate({ path: 'user_id', select: 'first_name last_name avatar username' })
             .limit(limit)
             .skip(skip)
@@ -60,7 +60,7 @@ const getReviews = async (req, res, next) => {
     }
     if (content_username) {
         const allReviews = await Review.find()
-            .populate({ path: 'content_id', select: 'name avatar username' })
+            .populate({ path: 'content_id', select: 'name avatar username type' })
             .populate({ path: 'user_id', select: 'first_name last_name avatar username' })
             .limit(limit)
             .skip(skip)

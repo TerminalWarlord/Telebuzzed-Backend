@@ -101,9 +101,19 @@ const getAllPosts = async (req, res, next) => {
     const query = req.query;
     const limit = query.limit || 20;
     const offset = query.offset || 1;
+    const type = query.type || 'all';
     const skip = (offset - 1) * offset;
 
-    const allPosts = await Post.find()
+    let matchQuery = {};
+    if (type !== 'all') {
+        if (type === 'post') {
+            matchQuery = { is_post: true }
+        }
+        else {
+            matchQuery = { is_post: false }
+        }
+    }
+    const allPosts = await Post.find(matchQuery)
         .populate({
             path: 'author_id', select: 'first_name last_name username avatar'
         })
