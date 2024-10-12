@@ -189,11 +189,31 @@ const putEditPost = async (req, res, next) => {
     }
 }
 
-
+const deletePost = async (req, res, next) => {
+    const postSlug = req.params.postSlug;
+    const post = await Post.findOneAndDelete({
+        slug: postSlug
+    })
+    if (!post) {
+        return res.status(404).json({
+            result: {
+                message: "Post not found!"
+            }
+        })
+    }
+    else {
+        return res.json({
+            result: {
+                message: "Post has been deleted."
+            }
+        })
+    }
+}
 
 module.exports = {
     adminPostSubmission,
     getAllPosts,
     getPostDetails,
-    putEditPost
+    putEditPost,
+    deletePost
 }

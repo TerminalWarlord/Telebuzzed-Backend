@@ -1,5 +1,5 @@
 
-const { adminPostSubmission, getAllPosts, getPostDetails, putEditPost } = require('../../controllers/admin/postController');
+const { adminPostSubmission, getAllPosts, getPostDetails, putEditPost, deletePost } = require('../../controllers/admin/postController');
 const express = require('express');
 const { authWall } = require('../../controllers/user/authController');
 
@@ -20,6 +20,7 @@ const upload = multer({
 
 router.put('/post/edit/:postSlug', authWall, upload.single('file'), putEditPost);
 router.post('/post', authWall, upload.single('file'), adminPostSubmission);
+router.delete('/post/delete/:postSlug', authWall, deletePost);
 router.get('/post', getPostDetails);
 router.get('/all_posts', authWall, upload.none(), getAllPosts);
 
