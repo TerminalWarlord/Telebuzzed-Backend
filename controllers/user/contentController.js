@@ -39,11 +39,10 @@ const postRequest = async (req, res, next) => {
         }
     })
 }
-// filter
-// limit
-// offset
-// searchTerm
-// type
+
+
+
+
 const getList = async (req, res, next) => {
     const query = req.query;
     const username = query.username;
@@ -72,15 +71,16 @@ const getList = async (req, res, next) => {
         : {};
 
     let sortOption = {
-        added_on: -1
+        added_on: -1,
+        _id: 1
     };
     if (filter === 'popular') {
-        sortOption = { views: -1 };
+        sortOption = { views: -1, _id: 1 };
     }
 
     const limit = parseInt(query.limit) || 20;
     const offset = parseInt(query.offset) || 1;
-    const skip = (offset - 1) * limit;
+    const skip = Math.max(0, (offset - 1) * limit);
 
     const match = {
         ...searchQuery,

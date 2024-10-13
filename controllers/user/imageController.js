@@ -3,7 +3,6 @@ const Image = require('../../models/image');
 const getImage = async (req, res, next) => {
     try {
         const imagePath = req.params.imagePath;
-        console.log(imagePath);
         const image = await Image.findOne({
             path: imagePath,
         });

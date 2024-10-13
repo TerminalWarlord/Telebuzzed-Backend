@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const postSignIn = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
-    console.log(req.body);
+    // console.log(req.body);
     let user = await User.findOne({
         email
     })
@@ -37,7 +37,7 @@ const postSignIn = async (req, res, next) => {
     }
     const token = jwt.sign({
         userId: user._id,
-    }, JWT_SECRET, { expiresIn: '5m' });
+    }, JWT_SECRET, { expiresIn: '5h' });
     res.json({
         result: {
             message: "Successfully logged in!",
@@ -108,7 +108,7 @@ const getUser = async (req, res, next) => {
     try {
         const jwtPayload = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(jwtPayload.userId);
-        console.log(user);
+        // console.log(user);
         const allContent = await Content.find({
             added_by: user._id,
         })
@@ -175,7 +175,7 @@ const getFullUserDetails = async (req, res, next) => {
         const user = await User.findOne({
             username
         });
-        console.log(user);
+        // console.log(user);
         const allContent = await Content.find({
             added_by: user._id,
         })
