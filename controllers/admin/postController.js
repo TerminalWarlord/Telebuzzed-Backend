@@ -1,9 +1,7 @@
 const Post = require('../../models/post');
-const Image = require('../../models/image');
 const slugify = require('slugify');
+const createImage = require('../../utils/uploadImageToDb');
 
-
-const uploadImage = require('../../utils/cloudnaryUpload');
 
 const generateSlug = async (title, sequence = null) => {
     let slug = slugify(title, { lower: true, strict: true })
@@ -19,30 +17,6 @@ const generateSlug = async (title, sequence = null) => {
     return slug;
 }
 
-
-const createImage = async (baseSlug, file) => {
-    // Get the file path
-    const filePath = file.path;
-    const cdnPath = await uploadImage(filePath);
-    let imageOnDb = baseSlug + '.' + filePath.split('.').pop()
-    console.log(filePath, cdnPath, imageOnDb);
-    try {
-        await Image.create({
-            path: imageOnDb,
-            content: cdnPath
-        })
-        console.log("Uploaded")
-    }
-    catch (err) {
-        console.log(err);
-        imageOnDb = baseSlug + '.' + Date.now() + '.' + filePath.split('.').pop();
-        await Image.create({
-            path: imageOnDb,
-            content: cdnPath
-        })
-    }
-    return imageOnDb;
-}
 
 const adminPostSubmission = async (req, res, next) => {
     const { title, content, isPost } = req.body;

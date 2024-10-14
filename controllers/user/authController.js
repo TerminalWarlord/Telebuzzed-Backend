@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const User = require('../../models/user');
 const Content = require('../../models/content');
 const Review = require('../../models/review');
+const createImage = require('../../utils/uploadImageToDb');
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -172,7 +174,7 @@ const authWall = async (req, res, next) => {
 
 const getFullUserDetails = async (req, res, next) => {
     try {
-        const username = req.query.username;
+        const username = req.query.username || req.user.username;
         const user = await User.findOne({
             username
         });
@@ -218,13 +220,37 @@ const getFullUserDetails = async (req, res, next) => {
     }
 }
 
+const putEditProfile = async (req, res, next) => {
+    const file = req.file;
+    const user = req.user;
+    let filePath = null;
+    if (file) {
+        filePath = await createImage(user.username, file);
+    }
+    const { first_name, last_name, tg_username } = req.body;
+    const updatedData = {
+        first_name,
+        last_name,
+        tg_username
+    }
 
+    if (filePath) {
+        updatedData.avatar = filePath;
+    }
+    const test = await User.findById(user._id);
+    console.log(file, "140", user._id, test, updatedData)
+    await User.findByIdAndUpdate(user._id, updatedData);
+
+    next();
+
+}
 
 module.exports = {
     postSignIn,
     postSignUp,
     getUser,
     getFullUserDetails,
+    putEditProfile,
     authWall
 
 }
