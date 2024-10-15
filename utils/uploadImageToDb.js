@@ -5,7 +5,7 @@ const uploadImage = require('./cloudnaryUpload');
 
 
 
-const createImage = async (baseSlug, file) => {
+const createImage = async (baseSlug, file, caption = null) => {
     // Get the file path
     const filePath = file.path;
     const cdnPath = await uploadImage(filePath);
@@ -14,7 +14,8 @@ const createImage = async (baseSlug, file) => {
     try {
         await Image.create({
             path: imageOnDb,
-            content: cdnPath
+            content: cdnPath,
+            caption
         })
         console.log("Uploaded")
     }

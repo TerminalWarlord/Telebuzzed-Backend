@@ -23,9 +23,9 @@ const adminPostSubmission = async (req, res, next) => {
     // Access file information from req.file
     const file = req.file;
 
-    if (!file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
+    // if (!file) {
+    //     return res.status(400).json({ error: 'No file uploaded' });
+    // }
 
     // Log file information
     console.log('Uploaded file:', file);
@@ -33,8 +33,11 @@ const adminPostSubmission = async (req, res, next) => {
 
     let baseSlug = await generateSlug(title.trim());
 
+    let imageOnDb;
+    if (file) {
+        imageOnDb = await createImage(baseSlug, file, title.trim());
 
-    const imageOnDb = await createImage(baseSlug, file);
+    }
     console.log({
         title,
         content,
@@ -43,14 +46,18 @@ const adminPostSubmission = async (req, res, next) => {
     })
 
     try {
-        Post.create({
+        const newPostObj = {
             title,
             content,
             slug: baseSlug,
             author_id: req.user._id,
             is_post: isPost,
-            featured_image: imageOnDb
-        });
+        }
+        if (imageOnDb) {
+            newPostObj.featured_image = imageOnDb
+
+        }
+        Post.create(newPostObj);
         return res.json({
             result: {
                 message: "Successfully posted."

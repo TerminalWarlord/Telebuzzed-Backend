@@ -57,6 +57,7 @@ const postSignUp = async (req, res, next) => {
         last_name: body.last_name,
         email: body.email,
         gender: body.gender,
+        tg_username: body.tg_username,
     }
     const hashedPassword = await bcrypt.hash(body.password, 5);
     try {
