@@ -143,7 +143,6 @@ const getUser = async (req, res, next) => {
         })
     }
     catch (err) {
-        console.log(err)
         return res.status(401).json({
             result: {
                 message: "Invalid token!"
@@ -156,7 +155,7 @@ const getUser = async (req, res, next) => {
 const authWall = async (req, res, next) => {
     const token = req.headers.authorization;
     try {
-        const jwtPayload = await jwt.verify(token, JWT_SECRET);
+        const jwtPayload = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(jwtPayload.userId);
         req.user = user;
     }
@@ -240,8 +239,41 @@ const putEditProfile = async (req, res, next) => {
     const test = await User.findById(user._id);
     console.log(file, "140", user._id, test, updatedData)
     await User.findByIdAndUpdate(user._id, updatedData);
-
     next();
+}
+
+
+const putChangePassword = async (req, res, next) => {
+    const { old_password, new_password } = req.body;
+    console.log(req.body);
+    const user = await User.findById(req.user._id);
+    const matchPassword = await bcrypt.compare(old_password, user.password);
+    if (!matchPassword) {
+        return res.status(403).json({
+            result: {
+                message: "The old password is incorrect!"
+            }
+        })
+    }
+    try {
+        const hashedPassword = await bcrypt.hash(new_password, 5);
+        await User.findByIdAndUpdate(req.user._id, {
+            password: hashedPassword
+        });
+        return res.json({
+            result: {
+                message: "Password has been changed successfully"
+            }
+        })
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(401).json({
+            result: {
+                message: "Failed to update your password"
+            }
+        })
+    }
 
 }
 
@@ -251,6 +283,7 @@ module.exports = {
     getUser,
     getFullUserDetails,
     putEditProfile,
+    putChangePassword,
     authWall
 
 }
