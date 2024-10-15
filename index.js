@@ -15,7 +15,7 @@ app.use(express.json());
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'http://telebuzzed.com',
+    'https://telebuzzed.com',
 ];
 
 // CORS setup with dynamic origin checking
