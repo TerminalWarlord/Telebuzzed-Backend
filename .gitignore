@@ -38,4 +38,5 @@ coverage/
 .DS_Store
 
 
-uploads/*
+upload/*
+!upload/
