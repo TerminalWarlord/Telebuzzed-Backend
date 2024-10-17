@@ -39,7 +39,7 @@ const postSignIn = async (req, res, next) => {
     }
     const token = jwt.sign({
         userId: user._id,
-    }, JWT_SECRET, { expiresIn: '5h' });
+    }, JWT_SECRET, { expiresIn: '1w' });
     res.json({
         result: {
             message: "Successfully logged in!",
