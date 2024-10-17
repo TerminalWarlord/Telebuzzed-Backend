@@ -83,7 +83,7 @@ const getAllPosts = async (req, res, next) => {
     const limit = query.limit || 20;
     const offset = query.offset || 1;
     const type = query.type || 'all';
-    const skip = (offset - 1) * offset;
+    const skip = (offset - 1) * limit;
 
     let matchQuery = {};
     if (type !== 'all') {
@@ -101,6 +101,7 @@ const getAllPosts = async (req, res, next) => {
         .select('title slug content is_post featured_image posted_on')
         .limit(limit + 1)
         .skip(skip)
+
 
     const results = allPosts.slice(0, limit);
     return res.json({

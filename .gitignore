@@ -39,4 +39,4 @@ coverage/
 
 
 upload/*
-!upload/
+!upload/.gitkeep
