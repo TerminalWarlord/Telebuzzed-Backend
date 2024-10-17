@@ -20,7 +20,7 @@ const postSignIn = async (req, res, next) => {
             username: email
         })
     }
-    console.log(email, password, user)
+    // console.log(email, password, user)
     if (!user) {
         return res.status(401).json({
             result: {
@@ -238,7 +238,7 @@ const putEditProfile = async (req, res, next) => {
         updatedData.avatar = filePath;
     }
     const test = await User.findById(user._id);
-    console.log(file, "140", user._id, test, updatedData)
+    // console.log(file, "140", user._id, test, updatedData)
     await User.findByIdAndUpdate(user._id, updatedData);
     next();
 }
