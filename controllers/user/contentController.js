@@ -11,17 +11,16 @@ const getTelegramDetails = require('../../utils/getTelegramInfo');
 
 const postRequest = async (req, res, next) => {
     const body = req.body;
-    const content = await getTelegramDetails(body.username);
-    content.category_id = body.category_id;
-    content.language = body.language;
-    content.is_nsfw = body.is_nsfw ? true : false;
-    content.added_by = req.user._id;
-    if (!content.description) {
-        content.description = body.description;
-    }
-
 
     try {
+        const content = await getTelegramDetails(body.username);
+        content.category_id = body.category_id;
+        content.language = body.language;
+        content.is_nsfw = body.is_nsfw ? true : false;
+        content.added_by = req.user._id;
+        if (!content.description) {
+            content.description = body.description;
+        }
         await Request.create(content);
     }
     catch (error) {
