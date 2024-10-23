@@ -18,7 +18,7 @@ const getUserRequests = async (req, res, next) => {
 
 const postAdminApproval = async (req, res, next) => {
     const requestId = req.body.request_id;
-    const category = req.body.category;
+    const category_id = req.body.category_id;
     const action = req.body.action;
     const reason = req.body.reason;
     const userRequest = await Request.findById(requestId).lean();
@@ -46,7 +46,7 @@ const postAdminApproval = async (req, res, next) => {
             }
         })
     }
-    userRequest.category = category;
+    userRequest.category_id = category_id;
     delete userRequest._id;
     try {
         await Content.create(userRequest);
