@@ -4,7 +4,7 @@ const User = require('../../models/user');
 const Content = require('../../models/content');
 const Review = require('../../models/review');
 const createImage = require('../../utils/uploadImageToDb');
-
+const { z } = require("zod");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -51,15 +51,52 @@ const postSignIn = async (req, res, next) => {
 
 
 const postSignUp = async (req, res, next) => {
-    const body = req.body;
-    const data = {
-        first_name: body.first_name,
-        last_name: body.last_name,
-        email: body.email,
-        gender: body.gender,
-        tg_username: body.tg_username,
+    const requiredBody = z.object({
+        first_name: z.string().min(3).max(100),
+        last_name: z.string().min(3).max(100),
+        email: z.string().min(5).max(100).email(),
+        gender: z.string(),
+        password: z
+            .string()
+            .min(8, "Password must be at least 8 characters long.")
+            .max(100)
+            .refine(
+                (password) => /[a-z]/.test(password),
+                { message: "Password must contain at least one lowercase letter." }
+            )
+            .refine(
+                (password) => /[A-Z]/.test(password),
+                { message: "Password must contain at least one uppercase letter." }
+            )
+            .refine(
+                (password) => /\d/.test(password),
+                { message: "Password must contain at least one number." }
+            ),
+    })
+
+
+    const body = requiredBody.safeParse(req.body);
+    if (!body.success) {
+        const errors = body.error.issues.map(issue => {
+            issue.path[0] = issue.path[0].charAt(0).toUpperCase() + issue.path[0].slice(1).toLowerCase();
+            return issue.message.replace("String", issue.path[0])
+        })
+        return res.status(400).json({
+            result: {
+                message: errors,
+            }
+
+        });
     }
-    const hashedPassword = await bcrypt.hash(body.password, 5);
+
+    const data = {
+        first_name: body.data.first_name,
+        last_name: body.data.last_name,
+        email: body.data.email,
+        gender: body.data.gender,
+        tg_username: body.data.tg_username,
+    }
+    const hashedPassword = await bcrypt.hash(body.data.password, 5);
     try {
         const user = new User({
             ...data,
@@ -82,7 +119,7 @@ const postSignUp = async (req, res, next) => {
 
         if (err.code === 11000) {
             // MongoDB duplicate key error (e.g., email or username already exists)
-            errorMessage = "Email or username already exists.";
+            errorMessage = "Email already exists.";
         } else if (err.name === "ValidationError") {
             // Validation errors
             errorMessage = "Invalid data. Please check your input.";
