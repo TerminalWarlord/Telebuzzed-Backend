@@ -5,6 +5,8 @@ const cors = require('cors');
 
 require('dotenv').config();
 
+
+const PORT = process.env.PORT || 3000;
 const app = express();
 
 // bodyparser
@@ -30,6 +32,7 @@ app.use(cors({
     }
 }));
 
+// TODO: add rate limit
 
 const authRoutes = require('./routes/user/auth');
 const contentRoutes = require('./routes/user/content');
@@ -44,7 +47,7 @@ app.use(adminPostRoutes);
 
 
 
-app.listen(3000, async () => {
+app.listen(PORT, async () => {
     await mongoose.connect(process.env.MONGODB);
-    console.log("Started listening at 3000");
+    console.log("Started listening at "+PORT);
 })

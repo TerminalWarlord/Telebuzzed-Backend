@@ -1,8 +1,9 @@
 const cheerio = require('cheerio');
-const uploadImage = require('./cloudnaryUpload');
+const {uploadImage, DEFAULT_IMAGE} = require('./imageUpload');
 const crypto = require('crypto');
 
 const Image = require('../models/image');
+
 
 // Function to normalize Telegram URL
 function normalizeTelegramUrl(input) {
@@ -24,14 +25,14 @@ async function scrapeFromTg(url) {
 
     let contentType = 'bot';
     let avatar = $('.tgme_page_photo_image').attr('src')
-        || 'https://res.cloudinary.com/djsn4u5ea/image/upload/v1728366113/telebuzzed_default.png';
+        || DEFAULT_IMAGE;
 
     // Handle avatar URL
     if (avatar && !avatar.startsWith('https://')) {
         avatar = avatar.startsWith('//') ? `https:${avatar}` : `https://${avatar}`;
     }
     if (avatar.startsWith('data:')) {
-        avatar = 'https://res.cloudinary.com/djsn4u5ea/image/upload/v1728366113/telebuzzed_default.png';
+        avatar = DEFAULT_IMAGE;
     }
     const title = $('.tgme_page_title').text().trim();
     let username = $('.tgme_page_extra').text().trim().replace("@", "");
@@ -55,12 +56,12 @@ async function scrapeFromTg(url) {
         : '';
 
 
-    const cloudinaryUrl = await uploadImage(avatar);
+    const imgbbUrl = await uploadImage(avatar);
     const randomStr = crypto.randomBytes(4).toString('hex');
-    const cdnUrl = username + "_" + randomStr + '.' + cloudinaryUrl.split('.').pop();
+    const cdnUrl = username + "_" + randomStr + '.' + imgbbUrl.split('.').pop();
     await Image.create({
         path: cdnUrl,
-        content: cloudinaryUrl
+        content: imgbbUrl
     });
     return {
         title,
@@ -99,12 +100,12 @@ async function scrapeUsingApi(url) {
     });
 
 
-    const cloudinaryUrl = await uploadImage(avatar);
+    const imgbbUrl = await uploadImage(avatar);
     const randomStr = crypto.randomBytes(4).toString('hex');
-    const cdnUrl = username + "_" + randomStr + '.' + cloudinaryUrl.split('.').pop();
+    const cdnUrl = username + "_" + randomStr + '.' + imgbbUrl.split('.').pop();
     await Image.create({
         path: cdnUrl,
-        content: cloudinaryUrl
+        content: imgbbUrl
     });
     return {
         title,

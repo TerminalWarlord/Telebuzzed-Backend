@@ -1,6 +1,6 @@
 const Image = require('../models/image');
 
-const uploadImage = require('./cloudnaryUpload');
+const {uploadImage} = require('./imageUpload');
 
 
 

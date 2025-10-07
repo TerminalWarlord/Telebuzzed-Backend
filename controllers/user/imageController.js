@@ -15,7 +15,7 @@ const getImage = async (req, res, next) => {
             });
         }
 
-        // Fetch the image from Cloudinary
+        // Fetch the image from ImgBB
         const response = await fetch(image.content);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
