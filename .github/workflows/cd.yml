@@ -1,0 +1,56 @@
+name: Deploy Telebuzzed Backend with PM2
+
+on:
+  push:
+    branches:
+      - master  
+  workflow_dispatch:  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Runner machine
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Server via SSH
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e  # Exit on error
+            
+            # Create project directory if not exists
+            mkdir -p ${{ secrets.PROJECT_PATH }}
+            cd ${{ secrets.PROJECT_PATH }}
+
+            # Pull latest code
+            if [ -d ".git" ]; then
+              git pull origin master
+            else
+              git clone https://github.com/${{ github.repository }} . --depth=1
+            fi
+
+            # Load NVM and Node
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
+            export PATH="$NVM_DIR/versions/node/$(nvm version)/bin:$PATH"
+
+            # Start or restart bot with PM2
+            if pm2 list | grep -q telebuzzed-backend; then
+              pm2 restart telebuzzed-backend --update-env
+            else
+              pm2 start index.js --name telebuzzed-backend
+            fi
+            pm2 save  # Save PM2 process list
+          EOF
+
+      - name: Clean Up SSH Key
+        run: rm -rf ~/.ssh/id_rsa

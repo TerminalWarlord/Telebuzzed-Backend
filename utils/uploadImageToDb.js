@@ -1,12 +1,13 @@
 const Image = require('../models/image');
 
-const {uploadImage} = require('./imageUpload');
+const { uploadImage } = require('./imageUpload');
 
 
 
 
 const createImage = async (baseSlug, file, caption = null) => {
     // Get the file path
+    await Image.syncIndexes();
     const filePath = file.path;
     const cdnPath = await uploadImage(filePath);
     let imageOnDb = baseSlug + '.' + filePath.split('.').pop()
@@ -20,12 +21,12 @@ const createImage = async (baseSlug, file, caption = null) => {
         console.log("Uploaded")
     }
     catch (err) {
-        console.log(err);
-        imageOnDb = baseSlug + '.' + Date.now() + '.' + filePath.split('.').pop();
-        await Image.create({
-            path: imageOnDb,
-            content: cdnPath
-        })
+        imageOnDb = baseSlug + '_' + Date.now() + '.' + filePath.split('.').pop();
+        await Image.updateOne(
+            { path: imageOnDb },           
+            { $set: { content: cdnPath } }, 
+            { upsert: true }             
+        );
     }
     return imageOnDb;
 }
